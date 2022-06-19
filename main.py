@@ -203,31 +203,59 @@ if __name__ == '__main__':
 
     # =========== ASSUMPTIONS ========================================
 
-    # for each minute calculate price change as a percent: Close / Open - 1
-    df_sp = pd.read_csv('./data/USA500IDXUSD_2021_trans_filtered.csv')
-    df_ada = pd.read_csv('./data/ADAUSDT_Binance_futures_data_minute_trans_filtered.csv')
-    df_sp['Change'] = df_sp.Close / df_sp.Open - 1
-    df_ada['Change'] = df_ada.close / df_ada.open - 1
-    # print(df_sp['Close'][:10])
-    # print(df_sp['Open'][:10])
-    # print(df_sp['Change'][:10])
-
+    # # for each minute calculate price change as a percent: Close / Open - 1
+    # df_sp = pd.read_csv('./data/USA500IDXUSD_2021_trans_filtered.csv')
+    # df_ada = pd.read_csv('./data/ADAUSDT_Binance_futures_data_minute_trans_filtered.csv')
+    # df_sp['Change'] = df_sp.Close / df_sp.Open - 1
+    # df_ada['Change'] = df_ada.close / df_ada.open - 1
+    # # print(df_sp['Close'][:10])
+    # # print(df_sp['Open'][:10])
+    # # print(df_sp['Change'][:10])
+    #
     # # for S&P500 calculate last 5 minutes “change” values standard deviation (i.e. volatility)
-    timestep = 5
-    df_sp = df_sp.fillna(value={'Volatility': 0.0})
-    for idx in range(timestep-1, len(df_sp)):
-        # df_sp['Volatility'] = np.std(list(df_sp['Change'][idx-5:idx]), ddof=1)
-        print(idx)
-        print(list(df_sp.Open[idx-timestep+1:idx+1]))
-        exit(0)
-    print(df2.head())
-
+    # volatility_step = 5
+    # df_sp['Volatility'] = ''  # np.nan
+    # for idx in range(volatility_step - 1, len(df_sp)):  # len(df_sp)
+    #     changes = list(df_sp.Change[idx - volatility_step + 1:idx + 1])
+    #     print('V', idx)
+    #     df_sp['Volatility'][idx] = np.std(changes, ddof=1)
+    #     # print(np.std(changes, ddof=1))
+    # # print(df_sp.head(100))
     #
     # # calculate correlation between 5 "changes" of S&P and ADA
     # from scipy import stats
-    # scipy.stats.pearsonr([1, 2, 3], [1, 2, 3])
+    #
+    # correlation_step = 5
+    # df_sp['CorrelationWithAda'] = ''
+    # for idx in range(correlation_step - 1, len(df_sp)):  # len(df_sp)
+    #     changes_sp = list(df_sp.Change[idx - correlation_step + 1:idx + 1])
+    #     changes_ada = list(df_ada.Change[idx - correlation_step + 1:idx + 1])
+    #     print('C', idx)
+    #     df_sp['CorrelationWithAda'][idx] = stats.pearsonr(changes_sp, changes_ada)[0]
+    # print(df_sp.head(100))
+    #
+    # df_sp.to_csv('./data/USA500IDXUSD_2021_trans_filtered_assum.csv', encoding='utf-8', index=False)
+    # df_ada.to_csv('./data/ADAUSDT_Binance_futures_data_minute_trans_filtered_assum.csv', encoding='utf-8', index=False)
 
-    # TODO: save
+    # calculate what is an average correlation coefficient value,
+    # for the 5 minutes period if 5 minutes volatility is higher than 0.2%.
+    df_sp = pd.read_csv('./data/USA500IDXUSD_2021_trans_filtered_assum.csv')
+    correlation_step = 5
+    volatility_thresholds = [0.02, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30]
+    # volatility_thresholds = [0.02, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30]
+    for thres in volatility_thresholds:
+        print('Correlation step: ', correlation_step)
+        print(f'Volatility threshold: {thres} %')
+
+        avg_vals = []
+        for idx in range(correlation_step - 1, len(df_sp)):
+            if df_sp.Volatility[idx] * 100 > thres:
+                avg_vals.append(df_sp.CorrelationWithAda[idx])
+        if len(avg_vals) != 0:
+            print(f'Average correlation: {sum(avg_vals)/len(avg_vals)}\n')
+
+
+
 
     # =========== DONE ========================================
 
@@ -235,5 +263,3 @@ if __name__ == '__main__':
 
     # transform_exchange_data('FTX_Futures_BTCPERP_minute.csv')
     # transform_exchange_data('BTCUSDT_1 Jan 2021.csv')
-
-    # TODO: understand strategy
